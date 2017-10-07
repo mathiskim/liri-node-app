@@ -25,6 +25,7 @@ function getTweets(){
   client.get('statuses/user_timeline', twitterID, function(error, tweets, response){
     if (!error) {
       console.log(tweets);
+      appendFile(tweets);
     } else {
       console.log(error);
     }  // end if error
@@ -42,7 +43,6 @@ function searchSpotify(){
       id: "db0755177243460fb6001737f15b564f",
       secret: "41ebc86329ac4643a79925c863d2a523"
      });  // end new Spotify client
-	 
   
   // search for the song   
    spotify.search({ type: 'track', query: input ,limit:1}, function(err, data) {
@@ -56,24 +56,33 @@ function searchSpotify(){
   var previewURL = tracks[0].preview_url;
   var albumName = tracks[0].album.name;
   // display the information on the command line
-  console.log("Artist(s): " + artistsName + "\nSong Name: " + songName + "\nPreview URL: " + previewURL + "\nAlbum Name: " + albumName);
+      var log = "Artist(s)" + artistsName;
+      log += "\nSong Name: " + songName;
+      log += "\nPreview URL: " + previewURL;
+      log += "\nAlbum Name: " + albumName;
+      console.log("Artist(s): " + artistsName + "\nSong Name: " + songName + "\nPreview URL: " + previewURL + "\nAlbum Name: " + albumName);
+      appendFile(log);
+
   });  // end Spotify search request
 }  // end function searchSpotify
 
 function searchOMDB(){
-
+console.log("in function searchomdb");
 // if no movie was requested, use the default
   if (input.length === 0){
     input = "Mr.+Nobody";
   }
 // Then run a request to the OMDB API with the movie specified
+console.log("hit");
   request("http://www.omdbapi.com/?t=" + input+ "&y=&plot=short&apikey=40e9cece", function(error, response, body) {
   if (error){
    console.log(error);
-  }
+  } else {
   // If the request is successful (i.e. if the response status code is 200), put the information into variables
   if (!error && response.statusCode === 200) {
+    console.log("populating variables");
     var title = JSON.parse(body).Title;
+    console.log("Title: " + title);
     var released = JSON.parse(body).Released;
     var imdbRating = JSON.parse(body).imdbRating;
     var rtRating = "Rating from Rotten Tomatoes is not available.";
@@ -88,10 +97,13 @@ function searchOMDB(){
       } 
 // display the information on the command line
     console.log(displayInfo);
+    console.log("calling appendFile");
+    appendFile(displayInfo);
 
   } // end of if no error
-}); // end of OMDB search request
-}  // end of function searchOMDB
+}  // end of else
+});  // end of OMDB search request
+} // end of function searchOMDB
 
 
 function readFile(){
@@ -122,6 +134,7 @@ function getCommand(){
         searchSpotify();
         break;
             case "movie-this":
+            console.log("movie-this");
         searchOMDB();
         break;
     case "do-what-it-says":
@@ -144,4 +157,14 @@ command = cmdLineText[2];
 
 // get the instruction
 getCommand();
+
+
+function appendFile(data){
+  console.log("in appendfile: " + data);
+  fs.appendFile("log.txt", data, function(err) {
+    if (err) {
+    console.log(err);
+  }
+  });
+}
 
